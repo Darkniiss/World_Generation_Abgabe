@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System;
+using UnityEngine.Windows;
 
 public class WorldEditorView : EditorWindow
 {
@@ -25,7 +26,7 @@ public class WorldEditorView : EditorWindow
     public static void ShowWindow()
     {
         var window = GetWindow(typeof(WorldEditorView));
-        window.minSize = new Vector2(500,600);
+        window.minSize = new Vector2(500, 600);
     }
 
     private void OnEnable()
@@ -49,7 +50,7 @@ public class WorldEditorView : EditorWindow
         gradient = EditorGUILayout.GradientField("World Color", gradient);
         worldObject = EditorGUILayout.ObjectField("World Object", worldObject, typeof(GameObject), false) as GameObject;
 
-        
+
         if (CheckInputs())
         {
             //Creates preview window
@@ -76,13 +77,17 @@ public class WorldEditorView : EditorWindow
             if (GUILayout.Button("Save Mesh!"))
             {
                 mesh = viewModel.GenerateMesh(worldName, meshSizeX, meshSizeZ, octaves, heightMultiplier, elevationMultiplier, gradient, worldObject).GetComponent<MeshFilter>().sharedMesh;
-                AssetDatabase.CreateAsset(mesh, "Assets/Prefabs/" + worldName + ".asset");
+                if (!Directory.Exists("Assets/Meshes"))
+                {
+                    AssetDatabase.CreateFolder("Assets", "Meshes");
+                }
+                AssetDatabase.CreateAsset(mesh, "Assets/Meshes/" + worldName + ".asset");
             }
-            
-            
+
+
         }
 
-        
+
 
     }
 
@@ -94,17 +99,20 @@ public class WorldEditorView : EditorWindow
             EditorGUILayout.HelpBox("Please enter a name!", MessageType.Warning, true);
             return false;
         }
-        if(worldName.Contains(' '))
+        if (worldName != null)
         {
-            EditorGUILayout.HelpBox("Spaces in the world name are not allowed!", MessageType.Warning, true);
-            return false;
+            if (worldName.Contains(' '))
+            {
+                EditorGUILayout.HelpBox("Spaces in the world name are not allowed!", MessageType.Warning, true);
+                return false;
+            }
         }
         if (worldObject == null)
         {
             EditorGUILayout.HelpBox("Please choose an object!", MessageType.Warning, true);
             return false;
         }
-        if(worldObject.GetComponent<MeshFilter>() == null)
+        if (worldObject.GetComponent<MeshFilter>() == null)
         {
             EditorGUILayout.HelpBox("The Object requires a MeshFilter component!", MessageType.Warning, true);
             return false;
